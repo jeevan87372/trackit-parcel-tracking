@@ -1,6 +1,7 @@
 // =============================================================================
 // TrackIt — Parcel Tracking System (DevOps Laboratory Project)
-// Module 4: Declarative Jenkins CI/CD Pipeline Specification (Jenkinsfile)
+// Declarative Jenkins CI/CD Pipeline Specification (Jenkinsfile)
+// Cross-Platform Engine: Auto-detects Linux (sh) vs Windows (bat)
 // =============================================================================
 
 pipeline {
@@ -16,8 +17,6 @@ pipeline {
     options {
         // Stop execution if any stage exceeds 15 minutes
         timeout(time: 15, unit: 'MINUTES')
-        // Colorize console output
-        ansiColor('xterm')
     }
 
     stages {
@@ -28,9 +27,13 @@ pipeline {
             steps {
                 echo '=== [Stage 1] Checking out source code and validating environment ==='
                 checkout scm
-                sh 'git status'
-                sh 'python3 --version || python --version'
-                sh 'docker --version'
+                script {
+                    if (isUnix()) {
+                        sh 'git status && docker --version'
+                    } else {
+                        bat 'git status && docker --version'
+                    }
+                }
             }
         }
 
@@ -40,12 +43,25 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo '=== [Stage 2] Setting up virtual environment & installing dependencies ==='
-                sh '''
-                    python3 -m venv venv || python -m venv venv
-                    . venv/bin/activate || . venv/Scripts/activate
-                    python -m pip install --upgrade pip
-                    python -m pip install -r requirements.txt
-                '''
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            python3 -m venv venv || python -m venv venv
+                            . venv/bin/activate
+                            pip install --upgrade pip
+                            pip install -r requirements.txt
+                        '''
+                    } else {
+                        bat '''
+                            if not exist venv (
+                                py -m venv venv || python -m venv venv
+                            )
+                            call venv\\Scripts\\activate.bat
+                            python -m pip install --upgrade pip
+                            python -m pip install -r requirements.txt
+                        '''
+                    }
+                }
             }
         }
 
@@ -55,11 +71,21 @@ pipeline {
         stage('Code Quality & Linting') {
             steps {
                 echo '=== [Stage 3] Executing syntax validation and code inspection ==='
-                sh '''
-                    . venv/bin/activate || . venv/Scripts/activate
-                    python -m py_compile app.py database.py
-                    echo "Python syntax validation passed successfully."
-                '''
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            . venv/bin/activate
+                            python -m py_compile app.py database.py
+                            echo "Python syntax validation passed successfully."
+                        '''
+                    } else {
+                        bat '''
+                            call venv\\Scripts\\activate.bat
+                            python -m py_compile app.py database.py
+                            echo Python syntax validation passed successfully.
+                        '''
+                    }
+                }
             }
         }
 
@@ -69,10 +95,19 @@ pipeline {
         stage('Run Unit & Integration Tests') {
             steps {
                 echo '=== [Stage 4] Running automated test suite with pytest ==='
-                sh '''
-                    . venv/bin/activate || . venv/Scripts/activate
-                    pytest -v --junitxml=reports/test-results.xml
-                '''
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            . venv/bin/activate
+                            pytest -v --junitxml=reports/test-results.xml
+                        '''
+                    } else {
+                        bat '''
+                            call venv\\Scripts\\activate.bat
+                            pytest -v --junitxml=reports/test-results.xml
+                        '''
+                    }
+                }
             }
             post {
                 always {
@@ -88,9 +123,13 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo '=== [Stage 5] Building production Docker container image ==='
-                sh """
-                    docker build -t ${IMAGE_NAME} -t ${LATEST_IMAGE} .
-                """
+                script {
+                    if (isUnix()) {
+                        sh "docker build -t ${IMAGE_NAME} -t ${LATEST_IMAGE} ."
+                    } else {
+                        bat "docker build -t ${IMAGE_NAME} -t ${LATEST_IMAGE} ."
+                    }
+                }
             }
         }
 
@@ -100,35 +139,50 @@ pipeline {
         stage('Container Smoke Test') {
             steps {
                 echo '=== [Stage 6] Running smoke tests on live container instance ==='
-                sh """
-                    # Spin up temporary container on test port 5050
-                    docker run -d --name trackit-smoketest -p 5050:5000 ${IMAGE_NAME}
-                    sleep 5
-                    
-                    # Verify HTTP endpoint returns 200 OK
-                    curl -f http://127.0.0.1:5050/ || python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5050/')"
-                    echo "Smoke test passed: Container responded with HTTP 200 OK."
-                    
-                    # Clean up smoke test container
-                    docker rm -f trackit-smoketest
-                """
+                script {
+                    if (isUnix()) {
+                        sh """
+                            docker rm -f trackit-smoketest 2>/dev/null || true
+                            docker run -d --name trackit-smoketest -p 5055:5000 ${IMAGE_NAME}
+                            sleep 5
+                            curl -f http://127.0.0.1:5055/ || python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5055/')"
+                            docker rm -f trackit-smoketest
+                        """
+                    } else {
+                        bat """
+                            docker rm -f trackit-smoketest >nul 2>&1 || ver >nul
+                            docker run -d --name trackit-smoketest -p 5055:5000 ${IMAGE_NAME}
+                            timeout /t 5 /nobreak >nul
+                            docker inspect --format="{{.State.Status}}" trackit-smoketest
+                            docker rm -f trackit-smoketest
+                        """
+                    }
+                }
             }
         }
 
         // ---------------------------------------------------------------------
-        // STAGE 7: Ansible Automated Deployment (Local / Staging Environment)
+        // STAGE 7: Ansible Automated Deployment
         // ---------------------------------------------------------------------
         stage('Ansible Deployment') {
             steps {
                 echo '=== [Stage 7] Deploying application container via Ansible Automation ==='
-                sh '''
-                    if command -v ansible-playbook >/dev/null 2>&1; then
-                        ansible-playbook -i ansible/inventory.ini ansible/playbooks/deploy.yml
-                    else
-                        python3 ansible/run_ansible.py --playbook deploy.yml || python ansible/run_ansible.py --playbook deploy.yml
-                    fi
-                    echo "TrackIt Parcel Tracking System deployed successfully via Ansible."
-                '''
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            if command -v ansible-playbook >/dev/null 2>&1; then
+                                ansible-playbook -i ansible/inventory.ini ansible/playbooks/deploy.yml
+                            else
+                                python3 ansible/run_ansible.py --playbook deploy.yml || python ansible/run_ansible.py --playbook deploy.yml
+                            fi
+                        '''
+                    } else {
+                        bat '''
+                            call venv\\Scripts\\activate.bat
+                            python ansible\\run_ansible.py --playbook deploy.yml
+                        '''
+                    }
+                }
             }
         }
     }
