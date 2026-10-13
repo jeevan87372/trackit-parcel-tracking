@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackIt — Parcel Tracking System | DevOps Lab Project</title>
+    <!-- Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'/%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'/%3E%3C/svg%3E">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- ================================================================= -->
+    <!-- NAVIGATION BAR                                                    -->
+    <!-- ================================================================= -->
+    <header class="navbar" id="top">
+        <div class="nav-container">
+            <!-- Brand Logo and Name -->
+            <a href="/" class="brand-logo" aria-label="TrackIt Homepage">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">Track<span class="brand-highlight">It</span></span>
+                    <span class="brand-subtitle">Parcel Tracking System</span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="nav-menu" id="navMenu">
+                <a href="#hero-section" class="nav-link active">Home</a>
+                <a href="#tracking-section" class="nav-link">Track Parcel</a>
+                <a href="#sample-shipments" class="nav-link">Database Parcels</a>
+                <a href="#about-section" class="nav-link">About Project</a>
+                <a href="/login" class="nav-link admin-nav-link">Admin Portal</a>
+            </nav>
+
+            <!-- Academic Lab Badge & Admin Link -->
+            <div class="nav-actions">
+                <span class="module-badge">
+                    <span class="pulse-indicator"></span>
+                    DevOps Lab &bull; Module 4 (Docker &amp; CI/CD)
+                </span>
+                <a href="/login" class="btn-outline-small">Admin Sign In &rarr;</a>
+            </div>
+
+            <!-- Mobile Navigation Toggle -->
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- ============================================================= -->
+        <!-- HERO & TRACKING FORM SECTION                                  -->
+        <!-- ============================================================= -->
+        <section class="hero-section" id="hero-section">
+            <div class="hero-backdrop"></div>
+            <div class="container hero-content">
+                <div class="hero-header">
+                    <span class="hero-eyebrow">College DevOps Laboratory Project</span>
+                    <h1 class="hero-title">Track Your Parcels With <span class="gradient-text">Complete Precision</span></h1>
+                    <p class="hero-description">
+                        Fast, reliable, and real-time shipment monitoring powered by SQLite. Query any parcel tracking ID to view live transit milestones, location logs, and status timelines.
+                    </p>
+                </div>
+
+                <!-- Prominent Tracking Form Card -->
+                <div class="tracking-card" id="tracking-section">
+                    <div class="card-header-bar">
+                        <div class="search-title-wrap">
+                            <svg class="search-header-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <h2>Enter Tracking Number</h2>
+                        </div>
+                        <span class="status-pill live-pill">SQLite Live Query</span>
+                    </div>
+
+                    <!-- Tracking Input Form (POST to /#search-results) -->
+                    <form method="POST" action="/#search-results" id="trackingForm" class="tracking-form">
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                </svg>
+                            </span>
+                            <input 
+                                type="text" 
+                                name="tracking_id" 
+                                id="trackingIdInput"
+                                class="tracking-input" 
+                                placeholder="e.g. TRK-849201, TRK-552194, TRK-319402, TRK-109283"
+                                value="{{ searched_id if searched_id else '' }}"
+                                autocomplete="off"
+                                required
+                            >
+                            <button type="submit" class="btn-track" id="trackSubmitBtn">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <span>Track Parcel</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Quick Sample Fill Suggestions -->
+                    <div class="quick-samples">
+                        <span class="quick-label">Try live IDs:</span>
+                        <div class="quick-buttons">
+                            <button type="button" class="quick-btn" data-id="TRK-849201">
+                                <span class="tag-status in-transit-dot"></span>TRK-849201 (In Transit)
+                            </button>
+                            <button type="button" class="quick-btn" data-id="TRK-552194">
+                                <span class="tag-status shipped-dot"></span>TRK-552194 (Shipped)
+                            </button>
+                            <button type="button" class="quick-btn" data-id="TRK-319402">
+                                <span class="tag-status delivered-dot"></span>TRK-319402 (Delivered)
+                            </button>
+                            <button type="button" class="quick-btn" data-id="TRK-109283">
+                                <span class="tag-status in-transit-dot"></span>TRK-109283 (Out for Delivery)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- DYNAMIC SEARCH RESULT CONTAINER (MODULE 2)                -->
+                <!-- ========================================================= -->
+                <div id="search-results" class="search-result-anchor">
+                    {% if search_status == 'found' and shipment %}
+                    <!-- FOUND SHIPMENT: Full Details & Timeline Card -->
+                    <div class="search-result-card card-{{ shipment.status_class }}">
+                        <div class="result-banner">
+                            <div class="result-banner-left">
+                                <span class="live-dot ping-animation"></span>
+                                <strong>LIVE DATABASE RECORD FOUND</strong> &bull; SQLite Query Match
+                            </div>
+                            <span class="db-pill">Database: trackit.db</span>
+                        </div>
+
+                        <!-- Top Header with Tracking ID & Status -->
+                        <div class="result-head">
+                            <div class="result-meta">
+                                <span class="label-tiny">TRACKING NUMBER</span>
+                                <div class="tracking-code-wrap">
+                                    <span class="result-tracking-code">{{ shipment.tracking_id }}</span>
+                                    <button type="button" class="copy-btn" data-copy="{{ shipment.tracking_id }}" title="Copy tracking ID">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="status-badge status-{{ shipment.status_class }} result-status-badge">
+                                {% if shipment.status == 'In Transit' or shipment.status == 'Out for Delivery' %}
+                                    <span class="status-dot ping-animation"></span>
+                                {% elif shipment.status == 'Shipped' %}
+                                    <span class="status-dot"></span>
+                                {% else %}
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                {% endif %}
+                                <span class="badge-text">{{ shipment.status }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Item Title & Parties Info -->
+                        <div class="result-item-section">
+                            <h3 class="result-item-title">{{ shipment.item_name }}</h3>
+                            <div class="parties-grid">
+                                <div class="party-box">
+                                    <span class="party-label">Sender</span>
+                                    <span class="party-val">{{ shipment.sender_name }}</span>
+                                </div>
+                                <div class="party-box">
+                                    <span class="party-label">Receiver</span>
+                                    <span class="party-val">{{ shipment.receiver_name }}</span>
+                                </div>
+                                <div class="party-box">
+                                    <span class="party-label">Carrier</span>
+                                    <span class="party-val font-semibold">{{ shipment.carrier }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Route Visual -->
+                        <div class="route-details result-route">
+                            <div class="route-point">
+                                <div class="point-icon origin-icon">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <circle cx="12" cy="12" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="point-info">
+                                    <span class="point-label">Origin Hub</span>
+                                    <span class="point-location">{{ shipment.origin }}</span>
+                                </div>
+                            </div>
+
+                            <div class="route-connector">
+                                <div class="connector-line"></div>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+
+                            <div class="route-point">
+                                <div class="point-icon destination-icon">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                </div>
+                                <div class="point-info">
+                                    <span class="point-label">Destination Hub</span>
+                                    <span class="point-location">{{ shipment.destination }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5-Stage Stepper -->
+                        <div class="stepper-wrap result-stepper">
+                            <div class="stepper">
+                                <div class="step-item {% if shipment.progress_step >= 1 %}completed{% endif %}">
+                                    <div class="step-circle">1</div>
+                                    <span class="step-label">Placed</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 2 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step >= 2 %}completed{% endif %} {% if shipment.progress_step == 2 %}current{% endif %}">
+                                    <div class="step-circle">2</div>
+                                    <span class="step-label">Shipped</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 3 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step >= 3 %}completed{% endif %} {% if shipment.progress_step == 3 %}current{% endif %}">
+                                    <div class="step-circle">3</div>
+                                    <span class="step-label">In Transit</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 4 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step >= 4 %}completed{% endif %} {% if shipment.progress_step == 4 %}current{% endif %}">
+                                    <div class="step-circle">4</div>
+                                    <span class="step-label">Out for Del.</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 5 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step == 5 %}completed current{% endif %}">
+                                    <div class="step-circle">5</div>
+                                    <span class="step-label">Delivered</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Status & Delivery Banner -->
+                        <div class="result-delivery-bar">
+                            <div class="delivery-highlight">
+                                <span class="highlight-label">
+                                    {% if shipment.status == 'Delivered' %}Final Delivery{% else %}Estimated Delivery{% endif %}
+                                </span>
+                                <span class="highlight-val">{{ shipment.estimated_delivery }}</span>
+                            </div>
+                            <div class="location-banner">
+                                <span class="highlight-label">Current Checkpoint</span>
+                                <span class="highlight-val text-blue">{{ shipment.current_location }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Activity Timeline from tracking_updates table -->
+                        <div class="timeline-section">
+                            <h4 class="timeline-heading">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                Detailed Tracking History &bull; Event Log
+                            </h4>
+                            <div class="timeline-list">
+                                {% for event in shipment_events %}
+                                <div class="timeline-item">
+                                    <div class="timeline-bullet"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-item-head">
+                                            <span class="timeline-status">{{ event.status }}</span>
+                                            <span class="timeline-time">{{ event.timestamp }}</span>
+                                        </div>
+                                        <div class="timeline-location">
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                <circle cx="12" cy="10" r="3"></circle>
+                                            </svg>
+                                            {{ event.location }}
+                                        </div>
+                                        <p class="timeline-desc">{{ event.description }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% elif search_status == 'not_found' %}
+                    <!-- NOT FOUND ALERT -->
+                    <div class="search-error-card" role="alert">
+                        <div class="error-icon-box">
+                            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div class="error-content">
+                            <h3 class="error-title">Shipment Not Found in Database</h3>
+                            <p class="error-desc">{{ error_message }}</p>
+                            <div class="error-suggestions">
+                                <span>Suggested active tracking IDs to test:</span>
+                                <div class="suggestion-pills">
+                                    <button type="button" class="sug-pill" data-id="TRK-849201">TRK-849201</button>
+                                    <button type="button" class="sug-pill" data-id="TRK-552194">TRK-552194</button>
+                                    <button type="button" class="sug-pill" data-id="TRK-319402">TRK-319402</button>
+                                    <button type="button" class="sug-pill" data-id="TRK-109283">TRK-109283</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- LIVE SHIPMENTS FROM SQLITE DATABASE                          -->
+        <!-- ============================================================= -->
+        <section class="samples-section" id="sample-shipments">
+            <div class="container">
+                <!-- Section Header -->
+                <div class="section-header">
+                    <div class="demo-tag db-tag">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg>
+                        SQLITE DATABASE RECORDS (MODULE 2 LIVE DATA)
+                    </div>
+                    <h2 class="section-title">Active Database Shipments</h2>
+                    <p class="section-subtitle">
+                        These shipments are queried directly from the SQLite database file (<code>trackit.db</code>). Click any card's tracking number to query its live timeline above.
+                    </p>
+                </div>
+
+                <!-- Showcase Cards Grid -->
+                <div class="cards-grid">
+                    {% for shipment in sample_shipments %}
+                    <article class="shipment-card card-{{ shipment.status_class }}">
+                        <!-- Card Banner -->
+                        <div class="card-demo-badge db-card-badge">
+                            <span>SQLITE RECORD &bull; ID: #{{ shipment.id }}</span>
+                        </div>
+
+                        <!-- Card Top Bar: Tracking ID and Status Pill -->
+                        <div class="card-head">
+                            <div class="tracking-meta">
+                                <span class="label-tiny">TRACKING NUMBER</span>
+                                <div class="tracking-code-wrap">
+                                    <span class="tracking-code">{{ shipment.tracking_id }}</span>
+                                    <button 
+                                        type="button" 
+                                        class="copy-btn" 
+                                        data-copy="{{ shipment.tracking_id }}" 
+                                        title="Copy tracking number"
+                                    >
+                                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Status Badge -->
+                            <div class="status-badge status-{{ shipment.status_class }}">
+                                {% if shipment.status == 'In Transit' or shipment.status == 'Out for Delivery' %}
+                                    <span class="status-dot ping-animation"></span>
+                                {% elif shipment.status == 'Shipped' %}
+                                    <span class="status-dot"></span>
+                                {% else %}
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                {% endif %}
+                                <span class="badge-text">{{ shipment.status }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Item Title -->
+                        <div class="card-item-info">
+                            <h3 class="item-title">{{ shipment.item_name }}</h3>
+                            <span class="carrier-tag">Carrier: <strong>{{ shipment.carrier }}</strong></span>
+                        </div>
+
+                        <!-- Route Information -->
+                        <div class="route-details">
+                            <div class="route-point">
+                                <div class="point-icon origin-icon">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <circle cx="12" cy="12" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="point-info">
+                                    <span class="point-label">Origin</span>
+                                    <span class="point-location">{{ shipment.origin }}</span>
+                                </div>
+                            </div>
+
+                            <div class="route-connector">
+                                <div class="connector-line"></div>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+
+                            <div class="route-point">
+                                <div class="point-icon destination-icon">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                </div>
+                                <div class="point-info">
+                                    <span class="point-label">Destination</span>
+                                    <span class="point-location">{{ shipment.destination }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Step Indicator (5-Stage Visual Stepper) -->
+                        <div class="stepper-wrap">
+                            <div class="stepper">
+                                <div class="step-item {% if shipment.progress_step >= 1 %}completed{% endif %}">
+                                    <div class="step-circle">1</div>
+                                    <span class="step-label">Placed</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 2 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step >= 2 %}completed{% endif %} {% if shipment.progress_step == 2 %}current{% endif %}">
+                                    <div class="step-circle">2</div>
+                                    <span class="step-label">Shipped</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 3 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step >= 3 %}completed{% endif %} {% if shipment.progress_step == 3 %}current{% endif %}">
+                                    <div class="step-circle">3</div>
+                                    <span class="step-label">In Transit</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 4 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step >= 4 %}completed{% endif %} {% if shipment.progress_step == 4 %}current{% endif %}">
+                                    <div class="step-circle">4</div>
+                                    <span class="step-label">Out for Del.</span>
+                                </div>
+                                <div class="step-bar {% if shipment.progress_step >= 5 %}active{% endif %}"></div>
+
+                                <div class="step-item {% if shipment.progress_step == 5 %}completed current{% endif %}">
+                                    <div class="step-circle">5</div>
+                                    <span class="step-label">Delivered</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer / Latest Status Info -->
+                        <div class="card-footer-info">
+                            <div class="info-row">
+                                <span class="info-label">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    {% if shipment.status == 'Delivered' %}Delivered On{% else %}Estimated Delivery{% endif %}:
+                                </span>
+                                <span class="info-val font-semibold">{{ shipment.estimated_delivery }}</span>
+                            </div>
+                            <div class="info-row current-location-row">
+                                <span class="info-label">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    Latest Update:
+                                </span>
+                                <span class="info-val location-highlight">{{ shipment.current_location }}</span>
+                            </div>
+                            <!-- Quick Track Action Link -->
+                            <div class="card-action-bar">
+                                <a href="/?tracking_id={{ shipment.tracking_id }}#search-results" class="btn-card-track">
+                                    Track in Live Engine &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- ABOUT PROJECT & ROADMAP SECTION                               -->
+        <!-- ============================================================= -->
+        <section class="about-section" id="about-section">
+            <div class="container">
+                <div class="about-grid">
+                    <div class="about-text">
+                        <span class="about-badge">DevOps Lab Architecture</span>
+                        <h2 class="about-heading">TrackIt Full DevOps Pipeline &amp; Architecture</h2>
+                        <p class="about-lead">
+                            TrackIt implements the complete end-to-end DevOps lifecycle: from modular Flask application design and SQLite relational persistence to automated test suites with Pytest, multi-stage Docker containerization, and declarative Jenkins / GitHub Actions CI/CD pipelines.
+                        </p>
+                        <div class="tech-stack-pills">
+                            <span class="tech-pill">Python 3.12/3.14</span>
+                            <span class="tech-pill">Flask 3.1</span>
+                            <span class="tech-pill">SQLite 3</span>
+                            <span class="tech-pill">Docker 29</span>
+                            <span class="tech-pill">Docker Compose</span>
+                            <span class="tech-pill">Gunicorn WSGI</span>
+                            <span class="tech-pill">Pytest (15 Tests)</span>
+                            <span class="tech-pill">Jenkins Pipeline</span>
+                            <span class="tech-pill">GitHub Actions</span>
+                            <span class="tech-pill">HTML5 / CSS3 / JS</span>
+                        </div>
+
+                        <!-- CI/CD Pipeline Flow Indicator -->
+                        <div class="pipeline-flow-box">
+                            <h4 class="pipeline-title">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                Automated CI/CD Pipeline Stages
+                            </h4>
+                            <div class="pipeline-steps">
+                                <div class="p-step"><span class="p-num">1</span> SCM Checkout</div>
+                                <span class="p-arr">&rarr;</span>
+                                <div class="p-step"><span class="p-num">2</span> Lint &amp; Syntax</div>
+                                <span class="p-arr">&rarr;</span>
+                                <div class="p-step"><span class="p-num">3</span> Pytest Suite</div>
+                                <span class="p-arr">&rarr;</span>
+                                <div class="p-step"><span class="p-num">4</span> Docker Build</div>
+                                <span class="p-arr">&rarr;</span>
+                                <div class="p-step"><span class="p-num">5</span> Smoke Test</div>
+                                <span class="p-arr">&rarr;</span>
+                                <div class="p-step p-active"><span class="p-num">6</span> Deploy</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roadmap Cards -->
+                    <div class="modules-roadmap">
+                        <!-- Module 1 -->
+                        <div class="module-card">
+                            <div class="mod-icon">1</div>
+                            <div class="mod-content">
+                                <div class="mod-header">
+                                    <h4 class="mod-title">Module 1: UI &amp; Application Skeleton</h4>
+                                    <span class="mod-status completed-tag">Completed</span>
+                                </div>
+                                <p class="mod-desc">Project directory structure, Flask app routing, responsive white-and-blue interface, tracking form input, and sample status cards.</p>
+                            </div>
+                        </div>
+
+                        <!-- Module 2 -->
+                        <div class="module-card">
+                            <div class="mod-icon">2</div>
+                            <div class="mod-content">
+                                <div class="mod-header">
+                                    <h4 class="mod-title">Module 2: Database &amp; Tracking Logic</h4>
+                                    <span class="mod-status completed-tag">Completed</span>
+                                </div>
+                                <p class="mod-desc">SQLite database schema (<code>shipments</code> and <code>tracking_updates</code>), parameterized queries, dynamic parcel status, and chronological event timelines.</p>
+                            </div>
+                        </div>
+
+                        <!-- Module 3 -->
+                        <div class="module-card">
+                            <div class="mod-icon">3</div>
+                            <div class="mod-content">
+                                <div class="mod-header">
+                                    <h4 class="mod-title">Module 3: Admin &amp; Shipment Management</h4>
+                                    <span class="mod-status completed-tag">Completed</span>
+                                </div>
+                                <p class="mod-desc">Admin authentication session, KPI dashboard, parcel intake registration, status &amp; milestone update controls, and delete management.</p>
+                            </div>
+                        </div>
+
+                        <!-- Module 4 -->
+                        <div class="module-card current-module">
+                            <div class="mod-icon">4</div>
+                            <div class="mod-content">
+                                <div class="mod-header">
+                                    <h4 class="mod-title">Module 4: DevOps &amp; CI/CD Pipelines</h4>
+                                    <span class="mod-status completed-tag">Completed (Active)</span>
+                                </div>
+                                <p class="mod-desc">Production Dockerfile, docker-compose orchestration, 15 automated Pytest unit/integration tests, declarative Jenkinsfile, and GitHub Actions CI/CD.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================================================================= -->
+    <!-- FOOTER                                                            -->
+    <!-- ================================================================= -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        <span>TrackIt</span>
+                    </div>
+                    <p class="footer-motto">
+                        Parcel Tracking System &bull; College DevOps Laboratory Project
+                    </p>
+                </div>
+
+                <div class="footer-nav">
+                    <div class="footer-col">
+                        <h5 class="footer-col-title">Quick Links</h5>
+                        <ul class="footer-links">
+                            <li><a href="#hero-section">Home</a></li>
+                            <li><a href="#tracking-section">Track Parcel</a></li>
+                            <li><a href="#sample-shipments">Database Parcels</a></li>
+                            <li><a href="#about-section">Architecture &amp; Roadmap</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-col">
+                        <h5 class="footer-col-title">Project Scope</h5>
+                        <ul class="footer-links">
+                            <li><span class="footer-info-item"><strong>Current Scope:</strong> Module 4 (Complete)</span></li>
+                            <li><span class="footer-info-item"><strong>Container:</strong> Docker &bull; Gunicorn WSGI</span></li>
+                            <li><span class="footer-info-item"><strong>CI/CD:</strong> Jenkins &bull; GitHub Actions</span></li>
+                            <li><span class="footer-info-item"><strong>Tests:</strong> Pytest (15 Tests Passed)</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-copy">
+                    &copy; 2026 <strong>TrackIt</strong> — DevOps Laboratory Project. Developed for academic demonstration purposes.
+                </div>
+                <div class="footer-back-to-top">
+                    <a href="#top" class="back-to-top-link">
+                        Back to Top &uarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript File -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
