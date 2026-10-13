@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Shipment {{ shipment.tracking_id }} — TrackIt Operations</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'/%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'/%3E%3C/svg%3E">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+
+    <!-- Admin Header -->
+    <header class="navbar admin-navbar">
+        <div class="nav-container">
+            <a href="/admin" class="brand-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">Track<span class="brand-highlight">It</span></span>
+                    <span class="brand-subtitle">Admin Operations Console</span>
+                </div>
+            </a>
+            <div class="nav-actions">
+                <a href="/admin" class="btn-outline-small">&larr; Back to Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container admin-container">
+        <div class="form-card-wrapper">
+            <div class="form-card">
+                <!-- Head -->
+                <div class="form-card-head">
+                    <div class="head-icon-circle bg-cyan-subtle">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0284c7" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="hero-eyebrow">Status Dispatch &amp; Milestone Logging</span>
+                        <h1 class="form-card-title">Update Shipment: <span class="text-blue">{{ shipment.tracking_id }}</span></h1>
+                        <p class="form-card-desc">Advancing parcel milestone, recording location checkpoints, and logging events to SQLite audit history.</p>
+                    </div>
+                </div>
+
+                <!-- Existing Shipment Summary Snapshot -->
+                <div class="shipment-snapshot-box">
+                    <div class="snap-col">
+                        <span class="snap-label">Consignment</span>
+                        <span class="snap-val font-semibold">{{ shipment.item_name }}</span>
+                    </div>
+                    <div class="snap-col">
+                        <span class="snap-label">Route</span>
+                        <span class="snap-val">{{ shipment.origin }} &rarr; {{ shipment.destination }}</span>
+                    </div>
+                    <div class="snap-col">
+                        <span class="snap-label">Sender / Receiver</span>
+                        <span class="snap-val">{{ shipment.sender_name }} / {{ shipment.receiver_name }}</span>
+                    </div>
+                    <div class="snap-col">
+                        <span class="snap-label">Current Status</span>
+                        <span class="status-badge status-{{ shipment.status_class }} badge-sm">
+                            {{ shipment.status }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Update Form -->
+                <form method="POST" action="/admin/shipments/{{ shipment.id }}/update" class="intake-form">
+                    <div class="form-row">
+                        <!-- New Status Dropdown -->
+                        <div class="form-group flex-1">
+                            <label for="status" class="form-label">Update Milestone Status <span class="req">*</span></label>
+                            <select name="status" id="status" class="form-control" required>
+                                <option value="Order Placed" {% if shipment.status == 'Order Placed' %}selected{% endif %}>1. Order Placed</option>
+                                <option value="Shipped" {% if shipment.status == 'Shipped' %}selected{% endif %}>2. Shipped</option>
+                                <option value="In Transit" {% if shipment.status == 'In Transit' %}selected{% endif %}>3. In Transit</option>
+                                <option value="Out for Delivery" {% if shipment.status == 'Out for Delivery' %}selected{% endif %}>4. Out for Delivery</option>
+                                <option value="Delivered" {% if shipment.status == 'Delivered' %}selected{% endif %}>5. Delivered</option>
+                            </select>
+                            <span class="form-help">Automatically updates the 5-stage progress milestone stepper.</span>
+                        </div>
+
+                        <!-- Logistics Carrier -->
+                        <div class="form-group flex-1">
+                            <label for="carrier" class="form-label">Logistics Carrier <span class="req">*</span></label>
+                            <input 
+                                type="text" 
+                                name="carrier" 
+                                id="carrier" 
+                                class="form-control" 
+                                value="{{ shipment.carrier }}" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <!-- Current Checkpoint Location -->
+                        <div class="form-group flex-1">
+                            <label for="current_location" class="form-label">Current Checkpoint Location <span class="req">*</span></label>
+                            <input 
+                                type="text" 
+                                name="current_location" 
+                                id="current_location" 
+                                class="form-control" 
+                                value="{{ shipment.current_location }}" 
+                                placeholder="e.g. Pune Highway Sorting Facility" 
+                                required
+                            >
+                        </div>
+
+                        <!-- Estimated Delivery Note -->
+                        <div class="form-group flex-1">
+                            <label for="estimated_delivery" class="form-label">Delivery Schedule / Timestamp <span class="req">*</span></label>
+                            <input 
+                                type="text" 
+                                name="estimated_delivery" 
+                                id="estimated_delivery" 
+                                class="form-control" 
+                                value="{{ shipment.estimated_delivery }}" 
+                                placeholder="e.g. Tomorrow, 6:00 PM (or Delivered on Oct 14)" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Milestone Checkpoint Log Description -->
+                    <div class="form-group">
+                        <label for="checkpoint_desc" class="form-label">New Timeline Event Log Description</label>
+                        <input 
+                            type="text" 
+                            name="checkpoint_desc" 
+                            id="checkpoint_desc" 
+                            class="form-control" 
+                            placeholder="e.g. Package arrived at regional logistics gateway; departed for final delivery hub."
+                        >
+                        <span class="form-help">This will be appended to the public tracking timeline history.</span>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="form-actions-bar">
+                        <button type="submit" class="btn-primary-action">
+                            Save Changes &amp; Log Milestone &rarr;
+                        </button>
+                        <a href="/admin" class="btn-secondary">Cancel</a>
+                        <a href="/?tracking_id={{ shipment.tracking_id }}#search-results" target="_blank" class="btn-outline-small ml-auto">
+                            Preview Public Card &nearr;
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Existing Milestone Audit Trail -->
+                <div class="timeline-preview-section">
+                    <h3 class="timeline-heading">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Current Timeline Checkpoints in Database ({{ updates|length }})
+                    </h3>
+
+                    <div class="timeline-list">
+                        {% for event in updates %}
+                        <div class="timeline-item">
+                            <div class="timeline-bullet"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-item-head">
+                                    <span class="timeline-status">{{ event.status }}</span>
+                                    <span class="timeline-time">{{ event.timestamp }}</span>
+                                </div>
+                                <div class="timeline-location">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    {{ event.location }}
+                                </div>
+                                <p class="timeline-desc">{{ event.description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="admin-footer">
+        <div class="container text-center">
+            &copy; 2026 <strong>TrackIt</strong> &bull; Module 3 Operations Console
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
