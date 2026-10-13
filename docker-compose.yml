@@ -1,0 +1,31 @@
+# =============================================================================
+# TrackIt — Parcel Tracking System (DevOps Laboratory Project)
+# Module 4: Multi-Container Orchestration (Docker Compose)
+# =============================================================================
+
+services:
+  trackit-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trackit-parcel-service
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - TRACKIT_DB_PATH=/app/data/trackit.db
+    volumes:
+      # Named volume to ensure SQLite database persists across container restarts
+      - trackit-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  trackit-data:
+    driver: local
