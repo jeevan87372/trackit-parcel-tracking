@@ -1,0 +1,39 @@
+---
+# =============================================================================
+# TrackIt — Parcel Tracking System (DevOps Laboratory Project)
+# Module 10: Ansible Rollback Playbook (rollback.yml)
+# =============================================================================
+
+- name: "TrackIt — Automated Rollback Playbook"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - "../vars/deploy_vars.yml"
+
+  tasks:
+    - name: "[Rollback 1/4] Log rollback initiation"
+      ansible.builtin.debug:
+        msg: "Initiating emergency rollback for {{ app_name }}..."
+
+    - name: "[Rollback 2/4] Stop unhealthy container instance"
+      ansible.builtin.command: docker compose down
+      args:
+        chdir: "../.."
+      ignore_errors: yes
+
+    - name: "[Rollback 3/4] Re-launch previous stable release container"
+      ansible.builtin.command: docker compose up -d
+      args:
+        chdir: "../.."
+
+    - name: "[Rollback 4/4] Verify recovered container health"
+      ansible.builtin.uri:
+        url: "{{ health_endpoint }}"
+        method: GET
+        status_code: 200
+      register: rollback_health
+      until: rollback_health.status == 200
+      retries: 5
+      delay: 2

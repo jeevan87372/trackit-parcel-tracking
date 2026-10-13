@@ -1,0 +1,26 @@
+---
+# =============================================================================
+# TrackIt — Parcel Tracking System (DevOps Laboratory Project)
+# Module 10: Ansible Deployment Variables
+# =============================================================================
+
+app_name: "trackit"
+container_name: "trackit-parcel-service"
+image_name: "devopsproject-trackit-app"
+image_tag: "latest"
+app_port: 5000
+host_port: 5000
+
+# Persistence paths
+data_dir: "/app/data"
+volume_name: "trackit-data"
+
+# Healthcheck parameters
+health_endpoint: "http://127.0.0.1:5000/health"
+public_endpoint: "http://127.0.0.1:5000/"
+health_retries: 10
+health_delay: 2
+
+# Deployment metadata
+deploy_env: "{{ env | default('staging') }}"
+deploy_timestamp: "{{ ansible_date_time.iso8601 | default('unknown') }}"
