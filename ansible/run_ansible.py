@@ -64,17 +64,26 @@ def run_deploy_playbook():
     # Task 3: Build application image
     print_task("Build latest application container image using Docker")
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    rc, stdout, stderr = run_command("docker compose build", cwd=repo_root)
+    rc, stdout, stderr = run_command("docker-compose build", cwd=repo_root)
     if rc != 0:
-        print_failed(f"Docker compose build failed: {stderr}")
+        rc, stdout, stderr = run_command("docker compose build", cwd=repo_root)
+    if rc != 0:
+        rc, stdout, stderr = run_command("docker build -t devopsproject-trackit-app:latest -t trackit:latest .", cwd=repo_root)
+    if rc != 0:
+        print_failed(f"Docker build failed: {stderr}")
         return False
     print_changed("changed: [localhost] => image devopsproject-trackit-app:latest successfully built.")
 
     # Task 4: Deploy container stack via Docker Compose
     print_task("Deploy application stack via Docker Compose")
-    rc, stdout, stderr = run_command("docker compose up -d --force-recreate", cwd=repo_root)
+    rc, stdout, stderr = run_command("docker-compose up -d --force-recreate", cwd=repo_root)
     if rc != 0:
-        print_failed(f"Docker compose up failed: {stderr}")
+        rc, stdout, stderr = run_command("docker compose up -d --force-recreate", cwd=repo_root)
+    if rc != 0:
+        run_command("docker rm -f trackit-parcel-service")
+        rc, stdout, stderr = run_command("docker run -d --name trackit-parcel-service -p 5000:5000 -v trackit-data:/app/data devopsproject-trackit-app:latest")
+    if rc != 0:
+        print_failed(f"Docker deploy failed: {stderr}")
         return False
     print_changed("changed: [localhost] => trackit-parcel-service container deployed.")
 

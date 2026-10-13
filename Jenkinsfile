@@ -170,7 +170,7 @@ pipeline {
                         '''
                     } else {
                         bat '''
-                            "%PYTHON_DIR%\\python.exe" ansible\\run_ansible.py --playbook deploy.yml || echo Ansible deployment completed
+                            "%PYTHON_DIR%\\python.exe" ansible\\run_ansible.py --playbook deploy.yml
                         '''
                     }
                 }
