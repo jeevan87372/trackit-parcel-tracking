@@ -120,7 +120,7 @@ class PipelineVerifier:
             req_admin = urllib.request.Request(f"{self.base_url}/admin", headers={"User-Agent": "TrackIt-E2E/1.0"})
             with self.opener.open(req_admin, timeout=4) as resp_admin:
                 body = resp_admin.read().decode("utf-8")
-                passed = ("Admin Console" in body) and ("Total Parcels" in body)
+                passed = ("Shipment Management Center" in body) and ("Total Registered" in body)
                 self.record(5, "Admin Authentication & KPI Dashboard", passed, "Session auth verified, KPI metrics loaded")
         except Exception as e:
             self.record(5, "Admin Authentication & KPI Dashboard", False, f"Request failed: {e}")
