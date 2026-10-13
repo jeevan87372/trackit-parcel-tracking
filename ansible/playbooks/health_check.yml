@@ -1,0 +1,35 @@
+---
+# =============================================================================
+# TrackIt — Parcel Tracking System (DevOps Laboratory Project)
+# Module 10: Standalone Health Check Playbook (health_check.yml)
+# =============================================================================
+
+- name: "TrackIt — Application Health & SLA Verification"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - "../vars/deploy_vars.yml"
+
+  tasks:
+    - name: "Check Docker container running status"
+      ansible.builtin.command: "docker inspect --format='{{ '{{' }}.State.Status{{ '}}' }}' {{ container_name }}"
+      register: container_status
+      failed_when: "'running' not in container_status.stdout"
+
+    - name: "Check JSON /health endpoint response"
+      ansible.builtin.uri:
+        url: "{{ health_endpoint }}"
+        method: GET
+        status_code: 200
+        return_content: yes
+      register: health_resp
+
+    - name: "Validate health response payload attributes"
+      ansible.builtin.assert:
+        that:
+          - "'healthy' in health_resp.content"
+          - "'TrackIt API is operational' in health_resp.content"
+        fail_msg: "Health check response payload did not match expected schema!"
+        success_msg: "Health check passed: Service is healthy and operational."

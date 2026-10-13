@@ -1,0 +1,76 @@
+---
+# =============================================================================
+# TrackIt — Parcel Tracking System (DevOps Laboratory Project)
+# Module 10: Ansible Deployment Playbook (deploy.yml)
+# =============================================================================
+
+- name: "TrackIt — Automated Application Deployment Playbook"
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+
+  vars_files:
+    - "../vars/deploy_vars.yml"
+
+  tasks:
+    - name: "[Task 1/8] Display deployment initiation banner"
+      ansible.builtin.debug:
+        msg: >
+          Starting deployment of {{ app_name }} (Image: {{ image_name }}:{{ image_tag }})
+          to environment: {{ deploy_env }} on host port {{ host_port }}
+
+    - name: "[Task 2/8] Verify Docker daemon connectivity"
+      ansible.builtin.command: docker info
+      register: docker_info_result
+      changed_when: false
+      failed_when: docker_info_result.rc != 0
+
+    - name: "[Task 3/8] Ensure Docker named volume exists for database persistence"
+      ansible.builtin.command: docker volume create {{ volume_name }}
+      register: volume_result
+      changed_when: "'created' in volume_result.stdout or volume_result.rc == 0"
+
+    - name: "[Task 4/8] Build latest application container image using Docker"
+      ansible.builtin.command: docker compose build
+      register: build_result
+      args:
+        chdir: "../.."
+      changed_when: true
+
+    - name: "[Task 5/8] Deploy application stack via Docker Compose"
+      ansible.builtin.command: docker compose up -d --force-recreate
+      register: compose_up_result
+      args:
+        chdir: "../.."
+      changed_when: true
+
+    - name: "[Task 6/8] Wait for application health check endpoint to return HTTP 200"
+      ansible.builtin.uri:
+        url: "{{ health_endpoint }}"
+        method: GET
+        status_code: 200
+        return_content: yes
+      register: health_check_response
+      until: health_check_response.status == 200
+      retries: "{{ health_retries }}"
+      delay: "{{ health_delay }}"
+
+    - name: "[Task 7/8] Verify public parcel tracking homepage availability"
+      ansible.builtin.uri:
+        url: "{{ public_endpoint }}"
+        method: GET
+        status_code: 200
+      register: public_homepage_response
+      failed_when: public_homepage_response.status != 200
+
+    - name: "[Task 8/8] Output deployment success summary"
+      ansible.builtin.debug:
+        msg:
+          - "=========================================================="
+          - " TrackIt Deployment Successful! (Ansible Module 10)"
+          - " App Name:     {{ app_name }}"
+          - " Environment:  {{ deploy_env }}"
+          - " Container:    {{ container_name }}"
+          - " Port:         http://localhost:{{ host_port }}"
+          - " Health Check: {{ health_endpoint }} (Status 200 OK)"
+          - "=========================================================="
