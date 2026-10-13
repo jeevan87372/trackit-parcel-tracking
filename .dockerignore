@@ -1,0 +1,27 @@
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Version control
+.git/
+.gitignore
+
+# CI/CD artifacts
+.github/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS temporary files
+.DS_Store
+Thumbs.db
