@@ -1,7 +1,7 @@
 // =============================================================================
 // TrackIt — Parcel Tracking System (DevOps Laboratory Project)
 // Declarative Jenkins CI/CD Pipeline Specification (Jenkinsfile)
-// Cross-Platform Engine: Auto-detects Linux (sh) vs Windows (bat)
+// Cross-Platform Engine: Windows Native & Linux Container Support
 // =============================================================================
 
 pipeline {
@@ -12,8 +12,9 @@ pipeline {
         IMAGE_NAME   = "trackit:${env.BUILD_NUMBER}"
         LATEST_IMAGE = "trackit:latest"
         APP_PORT     = "5000"
-        // Ensure Docker, Python Launcher, and Project venv are available to Jenkins Windows Service
-        PATH         = "C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\Python\\Launcher;C:\\Program Files\\Docker\\Docker\\resources\\bin;${env.PATH}"
+        PYTHON_DIR   = "C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\Python\\Python314"
+        DOCKER_BIN   = "C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        PATH         = "C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\Python\\Python314;C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\Python\\Python314\\Scripts;C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
     }
 
     options {
@@ -45,23 +46,17 @@ pipeline {
         // ---------------------------------------------------------------------
         stage('Install Dependencies') {
             steps {
-                echo '=== [Stage 2] Setting up virtual environment & installing dependencies ==='
+                echo '=== [Stage 2] Validating and resolving Python dependencies ==='
                 script {
                     if (isUnix()) {
                         sh '''
                             python3 -m venv venv || python -m venv venv
                             . venv/bin/activate
-                            pip install --upgrade pip
                             pip install -r requirements.txt
                         '''
                     } else {
                         bat '''
-                            if not exist venv (
-                                "C:\\Users\\jeevanesan\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe" -m venv venv || python -m venv venv
-                            )
-                            call venv\\Scripts\\activate.bat
-                            python -m pip install --upgrade pip
-                            python -m pip install -r requirements.txt
+                            "%PYTHON_DIR%\\python.exe" -m pip install -r requirements.txt
                         '''
                     }
                 }
@@ -77,14 +72,12 @@ pipeline {
                 script {
                     if (isUnix()) {
                         sh '''
-                            . venv/bin/activate
-                            python -m py_compile app.py database.py
+                            python3 -m py_compile app.py database.py
                             echo "Python syntax validation passed successfully."
                         '''
                     } else {
                         bat '''
-                            call venv\\Scripts\\activate.bat
-                            python -m py_compile app.py database.py
+                            "%PYTHON_DIR%\\python.exe" -m py_compile app.py database.py
                             echo Python syntax validation passed successfully.
                         '''
                     }
@@ -101,13 +94,11 @@ pipeline {
                 script {
                     if (isUnix()) {
                         sh '''
-                            . venv/bin/activate
                             pytest -v --junitxml=reports/test-results.xml
                         '''
                     } else {
                         bat '''
-                            call venv\\Scripts\\activate.bat
-                            pytest -v --junitxml=reports/test-results.xml
+                            "%PYTHON_DIR%\\python.exe" -m pytest -v --junitxml=reports/test-results.xml
                         '''
                     }
                 }
@@ -179,8 +170,7 @@ pipeline {
                         '''
                     } else {
                         bat '''
-                            call venv\\Scripts\\activate.bat
-                            python ansible\\run_ansible.py --playbook deploy.yml || echo Ansible deployment completed
+                            "%PYTHON_DIR%\\python.exe" ansible\\run_ansible.py --playbook deploy.yml || echo Ansible deployment completed
                         '''
                     }
                 }
